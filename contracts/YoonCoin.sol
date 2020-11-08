@@ -46,8 +46,8 @@ contract YoonCoin is IERC20 {
 
     // minter can create & send as many coins as possible
     function mint(address receiver, uint256 amount) public {
-        require(msg.sender == minter);
-        require(amount < 1e60);
+        require(msg.sender == minter, "only minter is allowed to mint");
+        require(amount < 1e60, "amount too large");
         _totalSupply = _totalSupply.add(amount);
         _balances[receiver] = _balances[receiver].add(amount);
     }
