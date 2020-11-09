@@ -1,8 +1,10 @@
+const assert = require('assert');
 const { pad, addr0, defaultTxOp } = require('./helpers');
 const ERC20 = require('@uniswap/v2-periphery/build/ERC20.json');
 const WETH9 = require('@uniswap/v2-periphery/build/WETH9.json');
 const UniswapV2Factory = require('@uniswap/v2-core/build/UniswapV2Factory.json');
 const UniswapV2Router02 = require('@uniswap/v2-periphery/build/UniswapV2Router02.json');
+const UniswapV2Library = require('@uniswap/v2-periphery/build/UniswapV2Library.json');
 
 // smart contract deployer
 class Deployer {
@@ -35,6 +37,17 @@ class Deployer {
             this.instances.factory.options.address,
             this.instances.weth.options.address,
         ]);
+
+        // deploy uniswap library -> only to call pure functions
+        // use locally built abi for interface
+        this.instances.library = await this.deploy(UniswapV2Library.abi, UniswapV2Library.bytecode);
+
+        // validate router addresses
+        assert(await this.instances.router.methods.factory().call() === this.instances.factory.options.address, 'router factory address mismatch');
+        assert(await this.instances.router.methods.WETH().call() === this.instances.weth.options.address, 'router weth address mismatch');
+
+        // validate pairs
+        assert(await this.instances.factory.methods.allPairsLength().call() === '0', 'factory pair is not 0');
     }
 
     subscribeAll = async () => {

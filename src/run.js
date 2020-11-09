@@ -4,6 +4,8 @@ const ganache = require('ganache-core');
 const Web3 = require('web3');
 const Deployer = require('./deployer');
 const Distributer = require('./distributer');
+const UniRunner = require('./unirunner');
+const { addr0, defaultTxOp } = require('./helpers');
 const port = 8545;
 
 // https://github.com/trufflesuite/ganache-cli
@@ -27,6 +29,7 @@ server.listen(port, (err, blockchain) => {
 const web3 = new Web3(new Web3.providers.WebsocketProvider(`ws://localhost:${port}`));
 
 const run = async () => {
+
     console.log('-------------------- accounts --------------------');
     let accounts = await web3.eth.getAccounts();
     console.log(accounts);
@@ -41,11 +44,14 @@ const run = async () => {
 
     // mint & distribute tokens
     let distributer = new Distributer(web3, accounts, instances);
-    await distributer.print();
     await distributer.distribute();
     await distributer.print();
 
+    // run some uniswap functions
+    let unirunner = new UniRunner(web3, accounts, instances);
+    await unirunner.run();
 
+    console.log('done');
 
 };
 

@@ -15,6 +15,7 @@
   },
   "devDependencies": {},
   "scripts": {
+    "start": "node src/run.js",
     "test": "mocha"
   },
   "repository": {
