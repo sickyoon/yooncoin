@@ -1,3 +1,5 @@
+const Web3 = require('web3');
+
 module.exports = {
 
   plugins: ["truffle-security"],
@@ -12,7 +14,13 @@ module.exports = {
     development: {
       host: "127.0.0.1",
       port: 8545,
-      network_id: "*"
+      network_id: "*",
+      // websockets: true,
+      // provider: () => new Web3.providers.WebsocketProvider('ws://localhost:8545', {
+      //   headers: {
+      //     Origin: 'http://localhost'
+      //   }
+      // }),
     },
     //  test: {
     //    host: "127.0.0.1",

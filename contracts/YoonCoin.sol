@@ -115,7 +115,7 @@ contract YoonCoin is IERC20 {
         address sender,
         address recipient,
         uint256 amount
-    ) public override returns (bool) {
+    ) external override returns (bool) {
         require(amount <= _balances[sender], "insufficient balance");
         require(amount <= allowed[sender][msg.sender], "not allowed");
         _balances[sender] = _balances[sender].sub(amount);

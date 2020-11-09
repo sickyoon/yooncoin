@@ -1,0 +1,30 @@
+{
+  "name": "yooncoin",
+  "version": "1.0.0",
+  "description": "## Uniswap Note https://uniswap.org/docs/v2/protocol-overview/smart-contracts/",
+  "main": "truffle-config.js",
+  "directories": {
+    "test": "test"
+  },
+  "dependencies": {
+    "@openzeppelin/contracts": "^3.2.0",
+    "@truffle/contract": "^4.2.29",
+    "@uniswap/v2-periphery": "^1.1.0-beta.0",
+    "ganache-core": "^2.13.1",
+    "truffle": "^5.1.52"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "mocha"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sickyoon/yooncoin.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/sickyoon/yooncoin/issues"
+  },
+  "homepage": "https://github.com/sickyoon/yooncoin#readme"
+}
