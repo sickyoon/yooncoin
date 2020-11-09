@@ -1,8 +1,9 @@
+"use strict";
 
 const ganache = require('ganache-core');
 const Web3 = require('web3');
-const deployAll = require('./deploy');
-const distribute = require('./distribute');
+const Deployer = require('./deployer');
+const Distributer = require('./distributer');
 const port = 8545;
 
 // https://github.com/trufflesuite/ganache-cli
@@ -31,9 +32,19 @@ const run = async () => {
     console.log(accounts);
 
     // deploy contracts and subscribe to events
-    let instances = await deployAll(web3, accounts);
+    let deployer = new Deployer(web3, accounts);
+    await deployer.deployAll();
+    await deployer.subscribeAll();
+    await deployer.print();
 
-    await distribute(web3, accounts, instances);
+    let instances = deployer.instances;
+
+    // mint & distribute tokens
+    let distributer = new Distributer(web3, accounts, instances);
+    await distributer.print();
+    await distributer.distribute();
+    await distributer.print();
+
 
 
 };

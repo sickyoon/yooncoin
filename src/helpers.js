@@ -1,4 +1,13 @@
 
+// zero address
+const addr0 = '0x0000000000000000000000000000000000000000';
+
+// default tx options
+const defaultTxOp = {
+    gas: '6721975',
+    gasPrice: '100000000000',
+}
+
 // helper print method
 const pad = (str) => {
     let pad = '               ';
@@ -14,4 +23,6 @@ const pad = (str) => {
 
 module.exports = {
     pad: pad,
+    addr0: addr0,
+    defaultTxOp: defaultTxOp,
 };
