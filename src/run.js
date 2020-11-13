@@ -57,9 +57,7 @@ const run = async () => {
 
 (async () => {
     try {
-
         await run();
-
     } catch (e) {
         console.log(e.message);
     }

@@ -1,5 +1,5 @@
 const assert = require('assert');
-const { pad } = require('./helpers');
+const { pad, supply } = require('./helpers');
 
 // mint and distribute tokens
 class Distributer {
@@ -19,38 +19,40 @@ class Distributer {
 
         // ensure initial erc20 balances
         console.log("* ensuring initial erc20 token state");
-        assert(await this.instances.erc20.methods.totalSupply().call() === '1000');
-        assert(await this.instances.erc20.methods.balanceOf(this.accounts[0]).call() === '1000', 'accounts[0] erc20 balance is not 1000');
+        assert(await this.instances.erc20.methods.totalSupply().call() === supply.erc20.total.toString());
+        assert(await this.instances.erc20.methods.balanceOf(this.accounts[0]).call() === supply.erc20.total.toString(), `accounts[0] erc20 balance is not ${supply.erc20.total}`);
         assert(await this.instances.erc20.methods.balanceOf(this.accounts[1]).call() === '0', 'accounts[1] erc20 balance is not 0');
         assert(await this.instances.erc20.methods.allowance(this.accounts[0], this.instances.router.options.address).call() === '0', 'accounts[0] router approval not 0');
         assert(await this.instances.erc20.methods.allowance(this.accounts[1], this.instances.router.options.address).call() === '0', 'accounts[1] router approval not 0');
 
-        // approve 400 erc20 on accounts[0] to router
-        console.log('* approve 400 erc20 on accounts[0] to router');
-        await this.instances.erc20.methods.approve(this.instances.router.options.address, 400).send({
+        // approve erc20 on accounts[0] to router
+        console.log(`* approve ${supply.erc20.router} erc20 on accounts[0] to router`);
+        await this.instances.erc20.methods
+            .approve(this.instances.router.options.address, supply.erc20.router)
+            .send({
+                from: this.accounts[0],
+            });
+
+        assert(await this.instances.erc20.methods.allowance(this.accounts[0], this.instances.router.options.address).call() === supply.erc20.router.toString(), `accounts[0] router approval not ${supply.erc20.router}`);
+
+        // approve erc20 on accounts[0] to accounts[1]
+        console.log(`* approve ${supply.erc20.account1} erc20 on accounts[0] to accounts[1]`);
+        await this.instances.erc20.methods.approve(this.accounts[1], supply.erc20.account1).send({
             from: this.accounts[0],
         });
 
-        assert(await this.instances.erc20.methods.allowance(this.accounts[0], this.instances.router.options.address).call() === '400', 'accounts[0] router approval not 400');
+        assert(await this.instances.erc20.methods.allowance(this.accounts[0], this.accounts[1]).call() === supply.erc20.account1.toString(), `accounts[1] allowance on accounts[0] not ${supply.erc20.account1}`);
 
-        // approve 300 erc20 on accounts[0] to accounts[1]
-        console.log('* approve 300 erc20 on accounts[0] to accounts[1]');
-        await this.instances.erc20.methods.approve(this.accounts[1], 300).send({
-            from: this.accounts[0],
-        });
-
-        assert(await this.instances.erc20.methods.allowance(this.accounts[0], this.accounts[1]).call() === '300', 'accounts[1] allowance on accounts[0] not 300');
-
-        // transfer 300 erc20 from accounts[0] to acconts[1] using accounts[1]
-        console.log('* transfer 300 erc20 from accounts[0] to accounts[1] as accounts[1]');
-        await this.instances.erc20.methods.transferFrom(this.accounts[0], this.accounts[1], 300).send({
+        // transfer erc20 from accounts[0] to acconts[1] using accounts[1]
+        console.log(`* transfer ${supply.erc20.account1} erc20 from accounts[0] to accounts[1] as accounts[1]`);
+        await this.instances.erc20.methods.transferFrom(this.accounts[0], this.accounts[1], supply.erc20.account1).send({
             from: this.accounts[1],
         });
 
         assert(await this.instances.erc20.methods.allowance(this.accounts[0], this.accounts[1]).call() === '0', 'erc20 - accounts[1] allowance on accounts[0] not 0');
-        assert(await this.instances.erc20.methods.allowance(this.accounts[0], this.instances.router.options.address).call() === '400', 'router allowance on accounts[0] not 400');
-        assert(await this.instances.erc20.methods.balanceOf(this.accounts[0]).call() === '700', 'accounts[0] erc20 balance is not 700');
-        assert(await this.instances.erc20.methods.balanceOf(this.accounts[1]).call() === '300', 'accounts[1] erc20 balance is not 300');
+        assert(await this.instances.erc20.methods.allowance(this.accounts[0], this.instances.router.options.address).call() === supply.erc20.router.toString(), `router allowance on accounts[0] not ${supply.erc20.router}`);
+        assert(await this.instances.erc20.methods.balanceOf(this.accounts[0]).call() === (supply.erc20.total - supply.erc20.account1).toString(), `accounts[0] erc20 balance is not ${(supply.erc20.total - supply.erc20.account1)}`);
+        assert(await this.instances.erc20.methods.balanceOf(this.accounts[1]).call() === supply.erc20.account1.toString(), `accounts[1] erc20 balance is not ${supply.erc20.account1}`);
 
         // ensure initial weth balances
         console.log("* ensuring initial weth token state");
@@ -61,42 +63,43 @@ class Distributer {
         assert(await this.instances.weth.methods.allowance(this.accounts[1], this.instances.router.options.address).call() === '0', 'weth - router allowance on accounts[1] not 0');
 
         // mint weth
-        console.log('* mint 1000 weth to accounts[0]');
+        console.log('* mint weth to accounts[0]');
         await this.instances.weth.methods.deposit().send({
             from: this.accounts[0],
-            value: 1000,
+            value: supply.weth.total,
         });
 
-        assert(await this.instances.weth.methods.balanceOf(this.accounts[0]).call() === '1000', 'weth - accounts[0] balance is not 1000');
+        assert(await this.instances.weth.methods.balanceOf(this.accounts[0]).call() === supply.weth.total.toString(), `weth - accounts[0] balance is not ${supply.weth.total}`);
         assert(await this.instances.weth.methods.balanceOf(this.accounts[1]).call() === '0', 'weth - accounts[1] balance is not 0');
 
-        // approve 400 weth on accounts[0] to router
-        console.log('* approve 400 weth on accounts[0] to router');
-        await this.instances.weth.methods.approve(this.instances.router.options.address, 400).send({
+        // approve weth on accounts[0] to router
+        console.log(`* approve ${supply.weth.router} weth on accounts[0] to router`);
+        await this.instances.weth.methods
+            .approve(this.instances.router.options.address, supply.weth.router)
+            .send({
+                from: this.accounts[0],
+            });
+
+        assert(await this.instances.weth.methods.allowance(this.accounts[0], this.instances.router.options.address).call() === supply.weth.router.toString(), `weth - router allowance on accounts[0] not ${supply.weth.router}`);
+
+        // approve weth on accounts[0] to accounts[1]
+        console.log(`* approve ${supply.weth.account1} weth on accounts[0] to accounts[1]`);
+        await this.instances.weth.methods.approve(this.accounts[1], supply.weth.account1).send({
             from: this.accounts[0],
         });
 
-        assert(await this.instances.weth.methods.allowance(this.accounts[0], this.instances.router.options.address).call() === '400', 'weth - router allowance on accounts[0] not 400');
+        assert(await this.instances.weth.methods.allowance(this.accounts[0], this.accounts[1]).call() === supply.weth.account1.toString(), `weth - accounts[1] allowance on accounts[0] not ${supply.weth.account1}`);
 
-        // approve 300 weth on accounts[0] to accounts[1]
-        console.log('* approve 300 weth on accounts[0] to accounts[1]');
-        await this.instances.weth.methods.approve(this.accounts[1], 300).send({
-            from: this.accounts[0],
-        });
-
-        assert(await this.instances.weth.methods.allowance(this.accounts[0], this.accounts[1]).call() === '300', 'weth - accounts[1] allowance on accounts[0] not 300');
-
-        // transfer 300 from accounts[0] to acconts[1] using router
-        // approve should have 100 left afterwards
-        console.log('* transfer 300 weth from accounts[0] to accounts[1] using accounts[1]');
-        await this.instances.weth.methods.transferFrom(this.accounts[0], this.accounts[1], 300).send({
+        // transfer weth from accounts[0] to acconts[1] using accounts[1]
+        console.log(`* transfer ${supply.weth.account1} weth from accounts[0] to accounts[1] using accounts[1]`);
+        await this.instances.weth.methods.transferFrom(this.accounts[0], this.accounts[1], supply.weth.account1).send({
             from: this.accounts[1],
         });
 
         assert(await this.instances.weth.methods.allowance(this.accounts[0], this.accounts[1]).call() === '0', 'weth - accounts[1] allowance on accounts[0] not 0');
-        assert(await this.instances.weth.methods.allowance(this.accounts[0], this.instances.router.options.address).call() === '400', 'weth - router allowance on accounts[0] not 400');
-        assert(await this.instances.weth.methods.balanceOf(this.accounts[0]).call() === '700', 'weth - accounts[0] balance is not 700');
-        assert(await this.instances.weth.methods.balanceOf(this.accounts[1]).call() === '300', 'weth - accounts[1] balance is not 300');
+        assert(await this.instances.weth.methods.allowance(this.accounts[0], this.instances.router.options.address).call() === supply.weth.router.toString(), `weth - router allowance on accounts[0] not ${supply.weth.router}`);
+        assert(await this.instances.weth.methods.balanceOf(this.accounts[0]).call() === (supply.weth.total - supply.weth.account1).toString(), `weth - accounts[0] balance is not ${supply.weth.total - supply.weth.account1}`);
+        assert(await this.instances.weth.methods.balanceOf(this.accounts[1]).call() === supply.weth.account1.toString(), `weth - accounts[1] balance is not ${supply.weth.account1}`);
 
     }
 
